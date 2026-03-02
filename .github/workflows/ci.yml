@@ -10,33 +10,30 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout
+
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.11
-
-      - name: Install dependencies
-        run: |
-         cd app
-         pip install -r requirements.txt
-
-      - name: Install Bandit
-        run: pip install bandit
-
-      - name: Run Bandit scan
-        run: bandit -r app --exclude app/venv,app/__pycache__
+          python-version: "3.11"
 
       - name: Install dependencies
         run: |
           cd app
           pip install -r requirements.txt
 
-      - name: Install Bandit
-        run: pip install bandit
+      - name: Install security tools
+        run: |
+          pip install bandit safety==2.3.5
 
       - name: Run Bandit scan
         run: |
           bandit -r app --exclude app/venv,app/__pycache__
+
+      - name: Run Safety scan
+        run: |
+          cd app
+          safety check -r requirements.txt
+
