@@ -11,51 +11,61 @@ jobs:
 
     steps:
 
+      # ---------- CHECKOUT ----------
+
       - name: Checkout code
         uses: actions/checkout@v3
+
+
+      # ---------- PYTHON ----------
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
+
+      # ---------- INSTALL APP DEPS ----------
+
       - name: Install dependencies
         run: |
           cd app
           pip install -r requirements.txt
 
+
+      # ---------- SECURITY TOOLS ----------
+
       - name: Install security tools
         run: |
           pip install bandit safety==2.3.5
 
+
+      # ---------- BANDIT ----------
+
       - name: Run Bandit scan
         run: |
           bandit -r app --exclude app/venv,app/__pycache__
+
+
+      # ---------- SAFETY ----------
 
       - name: Run Safety scan
         run: |
           cd app
           safety check -r requirements.txt
 
-      # -------- DOCKER BUILD --------
+
+      # ---------- DOCKER BUILD ----------
 
       - name: Build Docker image
         run: |
           docker build -t devsecops-app ./app
 
-      # -------- TRIVY INSTALL --------
 
-      - name: Install Trivy
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wget apt-transport-https gnupg
-          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
-          echo deb https://aquasecurity.github.io/trivy-repo/deb stable main | sudo tee -a /etc/apt/sources.list.d/trivy.list
-          sudo apt-get update
-          sudo apt-get install -y trivy
+      # ---------- TRIVY SCAN ----------
 
-      # -------- TRIVY SCAN --------
+      - name: Trivy scan
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: devsecops-app
 
-      - name: Scan Docker image
-        run: |
-          trivy image devsecops-app
